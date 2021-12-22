@@ -3,11 +3,22 @@ from nltk.corpus import wordnet
 
 sri = s.sri()
 
-sri.load_corpus("reuters")
-sri.insert_query("fuck the system")
+sri.load_corpus("cran")
+sri.insert_query("in the line are the computer computation")
 
-            
-print(sri.ranking(sri._querys[0]))
+rank = sri.ranking(sri._querys[0])
+print(rank)
+Cr = []
+for d in range(len(rank)):
+    if d > 6 and d < 10:
+        Cr.append(rank[d][0])
+Cnr = []
+for d in range(len(rank)):
+    if d <= 6:
+        Cnr.append(rank[d][0])
+retro = sri.retro(sri._querys[0], Cr, Cnr)
+print()
+print(retro)
 #print(sri._documents[14]._terms['medical'])
 """
 def remove_punct_dict(self):
