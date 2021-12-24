@@ -1,3 +1,5 @@
+import string
+
 def parse(corpus, file):
         
         if corpus == 'newsgroup':

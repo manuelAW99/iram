@@ -1,12 +1,16 @@
-import mri.sri as s
+import mri.sri as s, time
 from nltk.corpus import wordnet
 
 sri = s.sri()
 
 sri.load_corpus("cran")
-sri.insert_query("in the line are the computer computation")
-
-rank = sri.ranking(sri._querys[0])
+query = sri.create_query("in the line are the computer computation")
+sri.insert_query(query)
+temp = time.time()
+rank = sri.ranking(query)
+temp = time.time() - temp
+print(temp)
+"""
 print(rank)
 Cr = []
 for d in range(len(rank)):
@@ -20,6 +24,7 @@ retro = sri.retro(sri._querys[0], Cr, Cnr)
 print()
 print(retro)
 #print(sri._documents[14]._terms['medical'])
+"""
 """
 def remove_punct_dict(self):
     return dict((ord(punct), None) for punct in string.punctuation)

@@ -9,6 +9,7 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 import mri.sri as s
+from time import time
 
 
 class Ui_MainWindow(object):
@@ -16,18 +17,21 @@ class Ui_MainWindow(object):
         self.SRI = s.sri()
         self.corpus = ''
         self.query = None
-        self.recovered = []
+        self.recovered = None
         self.relevant = []
         self.not_relevant = []
         self.groups = []
         self.relevants = []
         self.window = None
+        self.temp = None
+        self.page = 0
+        self.rank_page = []
         
     def setupUi(self, MainWindow):
         self.window = MainWindow
         MainWindow.setObjectName("MainWindow")
         MainWindow.setEnabled(True)
-        MainWindow.resize(1024, 768)
+        MainWindow.resize(1024, 800)
         
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
@@ -47,6 +51,16 @@ class Ui_MainWindow(object):
         self.search_button = QtWidgets.QPushButton(self.centralwidget)
         self.search_button.setGeometry(QtCore.QRect(915, 50, 89, 31))
         self.search_button.setObjectName("search_button")
+        
+        self.page_next = QtWidgets.QPushButton(self.centralwidget)
+        self.page_next.setGeometry(QtCore.QRect(535, 85, 25, 25))
+        self.page_next.setObjectName("page_next")
+        self.page_next.clicked.connect(self.forward)
+        
+        self.page_back = QtWidgets.QPushButton(self.centralwidget)
+        self.page_back.setGeometry(QtCore.QRect(500, 85, 25, 25))
+        self.page_back.setObjectName("page_back")
+        self.page_back.clicked.connect(self.backward)
     
         self.corpus_combo = QtWidgets.QComboBox(self.centralwidget)
         self.corpus_combo.setGeometry(QtCore.QRect(20, 50, 131, 31))
@@ -61,11 +75,11 @@ class Ui_MainWindow(object):
         self.verticalLayout.setObjectName("verticalLayout")
         
         self.scrollArea = QtWidgets.QScrollArea(self.centralwidget)
-        self.scrollArea.setGeometry(QtCore.QRect(12, 90, 1000, 655))
+        self.scrollArea.setGeometry(QtCore.QRect(12, 115, 1000, 655))
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName("scrollArea")
         
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Ignored, QtWidgets.QSizePolicy.Ignored)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.scrollArea.sizePolicy().hasHeightForWidth())
@@ -90,6 +104,18 @@ class Ui_MainWindow(object):
         self.statusbar.setObjectName("statusbar")
         MainWindow.setStatusBar(self.statusbar)
 
+        self.temp = QtWidgets.QLabel(self.centralwidget)
+        self.temp.setGeometry(QtCore.QRect(12, 90, 200, 17))
+        self.temp.setObjectName("Time")
+        
+        self.recovered = QtWidgets.QLabel(self.centralwidget)
+        self.recovered.setGeometry(QtCore.QRect(200, 90, 200, 17))
+        self.recovered.setObjectName("Recovered")
+        
+        self.in_page = QtWidgets.QLabel(self.centralwidget)
+        self.in_page.setGeometry(QtCore.QRect(570, 90, 121, 17))
+        self.in_page.setObjectName("In_Page")
+        
         self.retranslateUi(MainWindow)
         self.corpus_combo.currentTextChanged['QString'].connect(self.set_corpus)
         self.search_button.clicked.connect(self.search_query)
@@ -101,19 +127,7 @@ class Ui_MainWindow(object):
     
     def search_query(self):
         if self.search_input.currentText() != '':
-            if len(self.groups) > 0:
-                self.groups = []
-                self.scrollArea = QtWidgets.QScrollArea(self.centralwidget)
-                self.scrollArea.setGeometry(QtCore.QRect(12, 90, 1000, 655))
-                self.scrollArea.setWidgetResizable(True)
-                self.scrollArea.setObjectName("scrollArea")
-                self.scrollAreaWidgetContents = QtWidgets.QWidget()
-                self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 1000, 655))
-                self.scrollAreaWidgetContents.setObjectName("scrollAreaWidgetContents")
-                self.scrollArea.setWidget(self.scrollAreaWidgetContents)
-                self.verticalLayout = QtWidgets.QVBoxLayout(self.scrollAreaWidgetContents)
-                self.verticalLayout.setObjectName("verticalLayout")
-            
+            self.t = time()
             repeat = 0
             for q in self.SRI.get_querys():
                 if q.get_text() == self.search_input.currentText():
@@ -125,21 +139,68 @@ class Ui_MainWindow(object):
                 self.SRI.insert_query(self.query)
                 self.search_input.addItem(self.query._text)
                 
-            r = self.SRI.ranking(self.query) if len(self.query.get_relevants()) == 0 else self.SRI.retro(self.query)
-            index = 0
-            for d in r:
-                g = self.group(self.scrollAreaWidgetContents, self.verticalLayout, d[0], index, self.query)
-                self.groups.append(g)
-                index += 1
-            self.scrollArea.show()
-            self.retranslateUi(self.window)
+            self.rank = self.SRI.ranking(self.query) if len(self.query.get_relevants()) == 0 else self.SRI.retro(self.query)
+            self.rank_page = [[] for i in range(int(len(self.rank)/20) + 1)]
+            element = 0
+            page = 0
+            for d in self.rank:
+                if element < 19:
+                    self.rank_page[page].append(d)
+                    element += 1
+                else:
+                    element = 0
+                    page += 1
+                    self.rank_page[page].append(d)
+            
+            self.t = time() - self.t
+            self.r = len(self.rank)
+            self.show(self.rank_page[0])
+            self.temp.show()
+            
+    def backward(self):
+        if self.page > 0:
+            self.page -= 1
+            self.show(self.rank_page[self.page]) 
+    
+    def forward(self):
+        if self.page < len(self.rank_page) - 1:
+            self.page += 1
+            self.show(self.rank_page[self.page]) 
+    
+    def show(self, r):
+        if len(self.groups) > 0:
+            self.groups = []
+            self.scrollArea = QtWidgets.QScrollArea(self.centralwidget)
+            self.scrollArea.setGeometry(QtCore.QRect(12, 115, 1000, 655))
+            self.scrollArea.setWidgetResizable(True)
+            self.scrollArea.setObjectName("scrollArea")
+            self.scrollAreaWidgetContents = QtWidgets.QWidget()
+            self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 1000, 655))
+            self.scrollAreaWidgetContents.setObjectName("scrollAreaWidgetContents")
+            self.scrollArea.setWidget(self.scrollAreaWidgetContents)
+            self.verticalLayout = QtWidgets.QVBoxLayout(self.scrollAreaWidgetContents)
+            self.verticalLayout.setObjectName("verticalLayout")
+        index = 0    
+        for d in r:
+            self.query.set_not_relevant(d[0])
+            g = self.group(self.scrollAreaWidgetContents, self.verticalLayout, d[0], index, self.query)
+            self.groups.append(g)
+            index += 1
+        self.scrollArea.show()
+        self.retranslateUi(self.window)
             
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "irAM"))
         self.label.setText(_translate("MainWindow", "irAM Searcher"))
         self.search_button.setText(_translate("MainWindow", "Search"))
+        self.page_back.setText(_translate("MainWindow", "<"))
+        self.page_next.setText(_translate("MainWindow", ">"))
         self.label_2.setText(_translate("MainWindow", "Select Corpus:"))
+        self.in_page.setText(_translate("MainWindow", "Page "+str(self.page)))
+        if self.query != None:
+            self.temp.setText(_translate("MainWindow", 'Time: '+ str(self.t)[:5] + ' seconds'))
+            self.recovered.setText(_translate('MainWindow', 'Recovered: '+ str(self.r) + ' docs'))
         for group in self.groups:
             group.group.setTitle(_translate("MainWindow", "Document: "+group.subject))
             group.check.setText(_translate("MainWindow", "Relevant"))
@@ -193,6 +254,7 @@ class Ui_MainWindow(object):
                     self.query.set_not_relevant(self.doc)
                 if self.doc in self.query.get_relevants():
                     self.query.get_relevants().remove(self.doc)
+            
 
 if __name__ == "__main__":
     import sys

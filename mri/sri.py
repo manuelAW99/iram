@@ -84,8 +84,8 @@ class sri:
                 query.set_weight(t, w)
         for syn in wordnet.synsets(t):
             for lemma in syn.lemmas():
-                if lemma.name() in self._rep.get_terms().keys():
-                    w = 0.5 * self._fw.weight_query(self._rep.get_documents(), self._rep.get_terms(),.5, query, lemma.name())
+                if lemma.name() in self._rep.get_terms().keys() and lemma.name() not in query.get_weights().keys():
+                    w = .5 * self._fw.weight_query(self._rep.get_documents(), self._rep.get_terms(),.5, query, lemma.name())
                     query.set_weight(lemma.name(), w)
         return query.get_weights()
     
@@ -132,6 +132,10 @@ class sri:
         
         return qm
     
+    def k_means(self, k):
+        rand_s = np.randint(len(self._rep.get_documents()), size=k)
+        for doc in self._rep.get_documents():
+            pass
 class representation:
     def __init__(self):
         self._documents = []
