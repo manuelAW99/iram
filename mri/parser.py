@@ -29,8 +29,12 @@ def parse_cran(file):
             while line != '.A\n':
                 subject += line
                 line = file.readline()
-            while line != '.W\n':
-                line = file.readline()
+            line = file.readline()
+            text+=line
+            file.readline()
+            line = file.readline()
+            text+=line
+            file.readline()
             while True:
                 line = file.readline()
                 if not line or (len(line.split()) > 1 and line.split()[0] == '.I'):
@@ -80,19 +84,3 @@ def parse_newsgroup(file):
             subject = ' '.join(line.split()[1:])
     docs.append([subject,text])
     return docs
-
-def tokenizer(terms, text):
-       current = ''
-       for char in text:
-           if char == ' ' or char == '\n' or char in string.punctuation:
-               if current == '':
-                   continue
-               current = current.lower()
-               if current in terms.keys():
-                   terms[current] += 1
-               else:
-                   terms[current] = 1
-               current = ''
-           else:
-               current += char
-       terms[current] = 1

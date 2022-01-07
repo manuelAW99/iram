@@ -25,7 +25,7 @@ class Ui_MainWindow(object):
         self.window = None
         self.temp = None
         self.page = 0
-        self.rank_page = []
+        self.rank_page = [[]]
         
     def setupUi(self, MainWindow):
         self.window = MainWindow
@@ -35,13 +35,13 @@ class Ui_MainWindow(object):
         
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
-        self.label = QtWidgets.QLabel(self.centralwidget)
-        self.label.setGeometry(QtCore.QRect(440, 10, 171, 41))
+        self.sys_name = QtWidgets.QLabel(self.centralwidget)
+        self.sys_name.setGeometry(QtCore.QRect(440, 10, 171, 41))
         font = QtGui.QFont()
         font.setFamily("Ubuntu")
         font.setPointSize(20)
-        self.label.setFont(font)
-        self.label.setObjectName("label")
+        self.sys_name.setFont(font)
+        self.sys_name.setObjectName("sys_name")
         
         self.search_input = QtWidgets.QComboBox(self.centralwidget)
         self.search_input.setGeometry(QtCore.QRect(180, 50, 705, 31))
@@ -67,9 +67,9 @@ class Ui_MainWindow(object):
         self.corpus_combo.setEditable(False)
         self.corpus_combo.setObjectName("corpus_combo")
         
-        self.label_2 = QtWidgets.QLabel(self.centralwidget)
-        self.label_2.setGeometry(QtCore.QRect(20, 30, 121, 17))
-        self.label_2.setObjectName("label_2")
+        self.s_corpus = QtWidgets.QLabel(self.centralwidget)
+        self.s_corpus.setGeometry(QtCore.QRect(20, 30, 121, 17))
+        self.s_corpus.setObjectName("s_corpus")
         
         self.verticalLayout = QtWidgets.QVBoxLayout(self.centralwidget)
         self.verticalLayout.setObjectName("verticalLayout")
@@ -123,7 +123,11 @@ class Ui_MainWindow(object):
 
     def set_corpus(self,text):
         self.corpus = text
+        self.SRI._querys = []
         self.SRI.load_corpus(self.corpus)
+        self.query = None
+        self.search_input.clear()
+        self.SRI.clean_querys()
     
     def search_query(self):
         if self.search_input.currentText() != '':
@@ -139,6 +143,7 @@ class Ui_MainWindow(object):
                 self.SRI.insert_query(self.query)
                 self.search_input.addItem(self.query._text)
                 
+            self.SRI.compare_query(self.query)
             self.rank = self.SRI.ranking(self.query) if len(self.query.get_relevants()) == 0 else self.SRI.retro(self.query)
             self.rank_page = [[] for i in range(int(len(self.rank)/20) + 1)]
             element = 0
@@ -192,12 +197,12 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "irAM"))
-        self.label.setText(_translate("MainWindow", "irAM Searcher"))
+        self.sys_name.setText(_translate("MainWindow", "irAM Searcher"))
         self.search_button.setText(_translate("MainWindow", "Search"))
         self.page_back.setText(_translate("MainWindow", "<"))
         self.page_next.setText(_translate("MainWindow", ">"))
-        self.label_2.setText(_translate("MainWindow", "Select Corpus:"))
-        self.in_page.setText(_translate("MainWindow", "Page "+str(self.page)))
+        self.s_corpus.setText(_translate("MainWindow", "Select Corpus:"))
+        self.in_page.setText(_translate("MainWindow", "Page "+str(self.page + 1)+'/'+str(len(self.rank_page))))
         if self.query != None:
             self.temp.setText(_translate("MainWindow", 'Time: '+ str(self.t)[:5] + ' seconds'))
             self.recovered.setText(_translate('MainWindow', 'Recovered: '+ str(self.r) + ' docs'))
@@ -245,13 +250,11 @@ class Ui_MainWindow(object):
             
         def relevant(self, c):
             if c.isChecked():
-                if self.doc not in self.query.get_relevants():
-                    self.query.set_relevant(self.doc)
+                self.query.set_relevant(self.doc)
                 if self.doc in self.query.get_not_relevants():
                     self.query.get_not_relevants().remove(self.doc)
             else:
-                if self.doc not in self.query.get_not_relevants():
-                    self.query.set_not_relevant(self.doc)
+                self.query.set_not_relevant(self.doc)
                 if self.doc in self.query.get_relevants():
                     self.query.get_relevants().remove(self.doc)
             
