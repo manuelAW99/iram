@@ -8,38 +8,50 @@ def parse(corpus, file):
             return parse_reuters(file)
         elif corpus == 'cran':
             return parse_cran(file)
+        elif corpus == 'time':
+            return parse_time(file)
+        elif corpus == 'npl':
+            return parse_npl(file)
         else:
             NotImplemented
             
 def parse_cran(file):
     docs = []
+    d_id = ''
     text = ''
     subject = ''
-    line = file.readline()
+    in_subject = 0
+    in_text = 0
     while True:
-        if not line:
+        line = file.readline()
+        if len(line.split())>0:
+            if line.split()[0]=='.I':
+                if in_text:
+                    docs.append([subject, text, d_id])
+                    in_text=0
+                    subject=''
+                    text=''
+                    d_id=''
+                d_id = line.split()[1]
+            elif line.split()[0]=='.A':
+                in_subject = 0
+                line = file.readline()
+                text+=line
+            elif line.split()[0]=='.B':
+                line = file.readline()
+                text+=line
+            elif line.split()[0]=='.W':
+                in_text = 1
+            elif in_text:
+                text+=line
+            elif line.split()[0]=='.T':
+                in_subject = 1
+            elif in_subject:
+                subject+=line
+        elif not line:
+            docs.append([subject, text, d_id])
             break
-        if line.split()[0] == '.I':
-            if subject != '':
-                docs.append([subject, text])
-                subject = ''
-                text = ''
-            line = file.readline()
-            line = file.readline()
-            while line != '.A\n':
-                subject += line
-                line = file.readline()
-            line = file.readline()
-            text+=line
-            file.readline()
-            line = file.readline()
-            text+=line
-            file.readline()
-            while True:
-                line = file.readline()
-                if not line or (len(line.split()) > 1 and line.split()[0] == '.I'):
-                    break
-                text += line
+      
     return docs
 
 def parse_reuters(file):
@@ -47,6 +59,7 @@ def parse_reuters(file):
     text = ''
     subject = ''
     line = file.readline()
+    d_id = 1
     while line:
         line = file.readline()
         title = line.find("<TITLE>")
@@ -60,9 +73,10 @@ def parse_reuters(file):
             while True:
                 endbody = line.find('</BODY>')
                 if endbody != -1:
-                    docs.append([subject,text])
+                    docs.append([subject,text, d_id])
                     subject = ''
                     text = ''
+                    d_id += 1
                     break
                 text += line
                 line = file.readline()
@@ -73,6 +87,7 @@ def parse_newsgroup(file):
     docs = []
     text = ''
     subject = ''
+    d_id = 1
     s = 1
     while True:
         line = file.readline()
@@ -82,5 +97,42 @@ def parse_newsgroup(file):
         if s and line.split()[0] == 'Subject:':
             s = 0
             subject = ' '.join(line.split()[1:])
-    docs.append([subject,text])
+    docs.append([subject,text,d_id])
+    return docs
+
+
+def parse_time(file):
+    docs = []
+    text = ''
+    subject = ''
+    d_id = 1
+    file.readline()
+    while True:
+        line = file.readline()
+        if not line:
+            break
+        if len(line.split()) > 0 and line.split()[0] == '*TEXT':
+            docs.append([subject,text,d_id])
+            subject = ''
+            text = ''
+            d_id+=1
+        text += line
+    return docs
+
+def parse_npl(file):
+    docs = []
+    text = ''
+    subject = ''
+    d_id = 1
+    while True:
+        line = file.readline()
+        if not line:
+            break
+        if len(line.split()) > 0 and line.split()[0] == '/':
+            docs.append([subject,text])
+            subject = ''
+            text = ''
+            d_id+=1
+            continue
+        text += line
     return docs

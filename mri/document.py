@@ -1,11 +1,9 @@
-import nltk, string, operator
-from bs4 import BeautifulSoup
+import string
 from nltk.corpus import stopwords
-from nltk.tokenize import sent_tokenize, word_tokenize
-from nltk.stem import PorterStemmer
 
 class document:
-    def __init__(self, subject, text, language, use_nltk):
+    def __init__(self, subject, text, language, use_nltk, d_id = -1):
+        self._d_id = d_id
         self._subject = subject
         self._text = text
         self._terms = {}
@@ -50,31 +48,26 @@ class document:
         return self._use_nltk
     
     def _engine_text(self):
-        if self.use_nltk():
-            soup = BeautifulSoup(self._text, features='html.parser')
-            text = soup.get_text(strip=True)
-            tokens = word_tokenize(text)
-            sw = stopwords.words(self.get_language())
-            clean_tokens = [token for token in tokens if token not in sw]
-            stemmer = PorterStemmer()
-            stem_tokens = [stemmer.stem(word) for word in clean_tokens if word not in string.punctuation]
-            freq = nltk.FreqDist(stem_tokens)
-            self._terms = freq
-        else:
-            current = ''
-            for char in self.get_text():
-                if char == ' ' or char == '\n' or char in string.punctuation:
-                    if current == '':
-                        continue
-                    current = current.lower()
-                    if current in self.get_terms().keys():
-                        self._terms[current] += 1
-                    else:
-                        self._terms[current] = 1
-                    current = ''
+        current = ''
+        for char in self.get_text():
+            if char == ' ' or char == '\n' or char in string.punctuation:
+                if current == '':
+                    continue
+                current = current.lower()
+                if current in self.get_terms().keys():
+                    self._terms[current] += 1
                 else:
-                    current += char
-            if current in self._terms:
-                self._terms[current] += 1
+                    self._terms[current] = 1
+                current = ''
             else:
-                self._terms[current] = 1
+                current += char
+        if current in self._terms:
+            self._terms[current] += 1
+        else:
+            self._terms[current] = 1
+        sw = stopwords.words(self.get_language())
+        new_terms = {}
+        for token in self._terms.keys():
+            if token not in sw:
+                new_terms[token] = self._terms[token]
+        self._terms = new_terms
