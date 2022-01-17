@@ -214,7 +214,7 @@ class sri:
         rank = {}
         for d in self.get_rep().get_documents():
             cs = self.get_framework().cosine_similarity(d, q, self.get_rep().get_terms_tree())
-            if cs > 0.12:
+            if cs > self.umbral:
                 rank[d] = cs
         return sorted(rank.items(), key=operator.itemgetter(1), reverse=True)
     
@@ -276,6 +276,7 @@ class sri:
         self.absorber = float(file.readline().split()[2])
         self.sim = float(file.readline().split()[2])
         self.sin = float(file.readline().split()[2])
+        self.umbral = float(file.readline().split()[2])
         self.use_nltk = int(file.readline().split()[2])
    
 """

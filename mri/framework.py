@@ -31,13 +31,6 @@ class framework:
     def weight_query(self, docs, terms, a, q, t):
         tf = self.tf(q, t)
         idf = self.idf(len(terms[t][1]), len(docs))
-        """
-        freq = q.get_term(t)
-        freq_m = 0
-        for k in q.get_terms().keys():
-            if q.get_term(k) > freq_m:
-                freq_m = q.get_term(k)
-        """
         return (a + (1-a)*(tf)) * idf
     
     def cosine_similarity(self, d, q, tree):
