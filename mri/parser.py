@@ -59,7 +59,7 @@ def parse_reuters(file):
     text = ''
     subject = ''
     line = file.readline()
-    d_id = 1
+    d_id = 0
     while line:
         line = file.readline()
         title = line.find("<TITLE>")
@@ -73,10 +73,10 @@ def parse_reuters(file):
             while True:
                 endbody = line.find('</BODY>')
                 if endbody != -1:
+                    d_id += 1
                     docs.append([subject,text, d_id])
                     subject = ''
                     text = ''
-                    d_id += 1
                     break
                 text += line
                 line = file.readline()
@@ -129,7 +129,7 @@ def parse_npl(file):
         if not line:
             break
         if len(line.split()) > 0 and line.split()[0] == '/':
-            docs.append([subject,text])
+            docs.append([subject,text,d_id])
             subject = ''
             text = ''
             d_id+=1

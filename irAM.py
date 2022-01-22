@@ -79,7 +79,8 @@ class Ui_MainWindow(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName("scrollArea")
         
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Ignored, QtWidgets.QSizePolicy.Ignored)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Ignored, 
+                                           QtWidgets.QSizePolicy.Ignored)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.scrollArea.sizePolicy().hasHeightForWidth())
@@ -144,8 +145,12 @@ class Ui_MainWindow(object):
                 self.search_input.addItem(self.query._text)
                 
             self.SRI.compare_query(self.query)
-            self.rank = self.SRI.ranking(self.query) if len(self.query.get_relevants()) == 0 else self.SRI.retro(self.query)
+            self.rank = (self.SRI.ranking(self.query) 
+                         if len(self.query.get_relevants()) == 0 
+                         else self.SRI.retro(self.query))
             self.rank_page = [[] for i in range(int(len(self.rank)/20) + 1)]
+            # Con esta línea revisamos los ids de los documentos devueltos
+            # print([i[0]._d_id for i in self.rank])
             element = 0
             page = 0
             for d in self.rank:
@@ -188,7 +193,8 @@ class Ui_MainWindow(object):
         index = 0    
         for d in r:
             self.query.set_not_relevant(d[0])
-            g = self.group(self.scrollAreaWidgetContents, self.verticalLayout, d[0], index, self.query)
+            g = self.group(self.scrollAreaWidgetContents, self.verticalLayout, 
+                           d[0], index, self.query)
             self.groups.append(g)
             index += 1
         self.scrollArea.show()
@@ -202,7 +208,8 @@ class Ui_MainWindow(object):
         self.page_back.setText(_translate("MainWindow", "<"))
         self.page_next.setText(_translate("MainWindow", ">"))
         self.s_corpus.setText(_translate("MainWindow", "Select Corpus:"))
-        self.in_page.setText(_translate("MainWindow", "Page "+str(self.page + 1)+'/'+str(len(self.rank_page))))
+        self.in_page.setText(_translate("MainWindow", "Page "+str(self.page + 1)+'/'+
+                                        str(len(self.rank_page))))
         if self.query != None:
             self.temp.setText(_translate("MainWindow", 'Time: '+ str(self.t)[:5] + ' seconds'))
             self.recovered.setText(_translate('MainWindow', 'Recovered: '+ str(self.r) + ' docs'))

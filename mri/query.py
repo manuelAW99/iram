@@ -2,12 +2,13 @@ import string
 from nltk.corpus import stopwords
 
 class query:
-    def __init__(self, text, use_nltk):
+    def __init__(self, text, use_nltk, language):
         self._text = text
         self._terms = {}
         self._weight = {}
         self._relevant = []
         self._not_relevant = []
+        self._language = language
         self._use_nltk =  use_nltk
         self._engine_text()
         
@@ -70,9 +71,11 @@ class query:
             self._terms[current] += 1
         else:
             self._terms[current] = 1
-        sw = stopwords.words('english')
-        new_terms = {}
-        for token in self._terms.keys():
-            if token not in sw:
-                new_terms[token] = self._terms[token]
-        self._terms = new_terms
+        
+        if self.use_nltk():
+            sw = stopwords.words(self._language)
+            new_terms = {}
+            for token in self._terms.keys():
+                if token not in sw:
+                    new_terms[token] = self._terms[token]
+            self._terms = new_terms

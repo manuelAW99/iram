@@ -1,6 +1,5 @@
 import os, math, pickle, numpy as np, operator
 from nltk.corpus import wordnet
-from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
 
 from mri import document as doc, query as q, framework as fw, parser
@@ -62,7 +61,8 @@ class sri:
             os.chdir('../..')
             self.inverted_indexes()
             self.calc_weight()
-            self.tree_terms()
+            if self.use_nltk:
+                self.tree_terms()
             with open('./cache/'+corpus+'.rep', 'wb') as f:
                 pickle.dump(self._rep, f)
                 f.close()
@@ -160,7 +160,7 @@ class sri:
     Método para generar una instancia de query.
     """ 
     def create_query(self, text):
-        query = q.query(text, self.use_nltk)
+        query = q.query(text, self.use_nltk, self.language)
         return query
         
     """

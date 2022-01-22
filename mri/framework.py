@@ -42,18 +42,24 @@ class framework:
                 stem_term = stemmer.stem(t)
                 if stem_term in tree.keys():
                     family = [tt for tt in tree[stem_term] if tt in d.get_weights().keys()]
+                    """
+                    Prueba con la media:
+                    
                     mean = self.mean(family, d)
+                    w_q = q.get_weight(t)
+                    weight += (mean * w_q)
+                    """
                     for tt in family:
                         w_d = d.get_weight(tt)
                         w_q = q.get_weight(t)
                         if t == tt:
                             weight += (w_d * w_q)
                         else:
-                            weight += self.get_sim()*(w_d* w_q)
+                            weight += self.get_sim()*(w_d * w_q)
         else:
             for t in q.get_weights().keys():
                 if t in d.get_weights().keys():
-                    w_d = d.get_weight(tt)
+                    w_d = d.get_weight(t)
                     w_q = q.get_weight(t)
                     weight += (w_d * w_q)
                 

@@ -74,11 +74,16 @@ rel = parse_rel()
 pre = []
 recall = []
 F1 = []
+time_t = []
+tuples = []
+mean_t = []
 
 for i in range(len(querys)):
+    time_p = time.time()
     query=sri.create_query(querys[i])
     sri.insert_query(query)
-    rank = sri.ranking(query)
+    rank = sri.ranking(query)[:9]
+    time_p = time.time() - time_p
     rr = 0
     ri = 0
     nr = 0
@@ -91,32 +96,81 @@ for i in range(len(querys)):
     nr = len(rel[str(i+1)])-rr
     p = rr/(rr+ri) if rr+ri >0 else 0
     r = rr/(rr+nr) if rr+nr >0 else 0
-    f1 = 2/(1/p + 1/r) if p != 0 and r != 0 else 0
+    if r == 0 and p == 0:
+        f1 = 0
+    elif r == 0 and p != 0:
+        f1 = 2/(1/p)
+    elif r!=0 and p == 0:
+        f1 = 2/(1/r)
+    else:
+        f1 = 2/((1/r) + (1/p))
+    #f1 = (2*p*r)/(p+r) if p + r > 0 else 0
     pre.append(p)
     recall.append(r)
     F1.append(f1)
+    tuples.append([r,p])
+    time_t.append(time_p)
     
-means_p = [mean(pre[:1]),mean(pre[:5]), mean(pre[:15]), mean(pre[:35]), 
-         mean(pre[:60]),mean(pre[:80]),mean(pre[:120]),mean(pre[:160]),mean(pre)]
+means_p = [mean(pre[:25]),mean(pre[:50]), mean(pre[:75]), mean(pre[:100]), 
+         mean(pre[:125]),mean(pre[:150]),mean(pre[:175]),mean(pre[:200]),mean(pre)]
 
-means_r = [mean(recall[:1]),mean(recall[:5]), mean(recall[:15]), mean(recall[:35]), 
-         mean(recall[:60]),mean(recall[:80]),mean(recall[:120]),mean(recall[:160]),mean(recall)]
+means_r = [mean(recall[:25]),mean(recall[:50]), mean(recall[:75]), mean(recall[:100]), 
+         mean(recall[:125]),mean(recall[:150]),mean(recall[:175]),mean(recall[:200]),mean(recall)]
 
-means_f1 = [mean(F1[:1]),mean(F1[:5]), mean(F1[:15]), mean(F1[:35]), 
-         mean(F1[:60]),mean(F1[:80]),mean(F1[:120]),mean(F1[:160]),mean(F1)]
+means_f1 = [mean(F1[:25]),mean(F1[:50]), mean(F1[:75]), mean(F1[:100]), 
+         mean(F1[:125]),mean(F1[:150]),mean(F1[:175]),mean(F1[:200]),mean(F1)]
 
+pos = 0
+list_length = len(tuples)  
+for i in range(0, list_length):  
+    for j in range(0, list_length-i-1):  
+        if (tuples[j][pos] > tuples[j + 1][pos]):  
+            temp = tuples[j]  
+            tuples[j]= tuples[j + 1]  
+            tuples[j + 1]= temp  
+
+for i in tuples:
+    mean_t.append(((i[0]+i[1])/2))
+ 
+aaaa = []   
+for i in range(len(pre)):
+    aaaa.append(mean(pre[:i]))
+    
+bbbb = []
+for i in range(len(pre)):
+    bbbb.append(mean(recall[:i]))
+    
 print(means_p)
 print(means_r)
 print(means_f1)
 
-x = [1,5,15,35,60,80,120,160,225]
-plt.plot(x,means_p, label = 'Precision')
-plt.plot(x,means_r, label = 'Recall')
+
+x = [25,50,75,100,125,150,175,200,225]
+means_p = [mean(pre[:25]),mean(pre[:50]), mean(pre[:75]), mean(pre[:100]), 
+         mean(pre[:125]),mean(pre[:150]),mean(pre[:175]),mean(pre[:200]),mean(pre)]
+
+means_r = [mean(recall[:25]),mean(recall[:50]), mean(recall[:75]), mean(recall[:100]), 
+         mean(recall[:125]),mean(recall[:150]),mean(recall[:175]),mean(recall[:200]),mean(recall)]
+
+means_f = [mean(F1[:25]),mean(F1[:50]), mean(F1[:75]), mean(F1[:100]), 
+         mean(F1[:125]),mean(F1[:150]),mean(F1[:175]),mean(F1[:200]),mean(F1)]
+
+plt.plot(x,means_p, label = 'Precisión')
+plt.plot(x,means_r, label = 'Recobrado')
 plt.plot(x,means_f1, label = 'F1')
-plt.xlabel('Documents')
-plt.ylabel('Value')
+plt.xlabel('consultas')
+plt.ylabel('valor')
+plt.title("Métricas de Evaluación\numbral: 0.12 | nltk: 0")
 plt.grid(True)
 leg = plt.legend(loc=9,ncol=2, mode="expand", shadow=True, fancybox=True)
 leg.get_frame().set_alpha(0.5)
 plt.show()
 
+means_t = [mean(time_t[:25]),mean(time_t[:50]), mean(time_t[:75]), mean(time_t[:100]), 
+         mean(time_t[:125]),mean(time_t[:150]),mean(time_t[:175]),mean(time_t[:200]),mean(time_t)]
+plt.plot(x, means_t, label='Time vs. Querys')
+plt.xlabel('consultas')
+plt.ylabel('tiempo')
+plt.title("Tiempo que demora la recuperación\numbral: 0.12 | nltk: 0")
+plt.grid(True)
+plt.show()

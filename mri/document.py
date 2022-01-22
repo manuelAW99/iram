@@ -65,9 +65,11 @@ class document:
             self._terms[current] += 1
         else:
             self._terms[current] = 1
-        sw = stopwords.words(self.get_language())
-        new_terms = {}
-        for token in self._terms.keys():
-            if token not in sw:
-                new_terms[token] = self._terms[token]
-        self._terms = new_terms
+        
+        if self.use_nltk():
+            sw = stopwords.words(self.get_language())
+            new_terms = {}
+            for token in self._terms.keys():
+                if token not in sw:
+                    new_terms[token] = self._terms[token]
+            self._terms = new_terms
