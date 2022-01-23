@@ -1,5 +1,10 @@
 import string
 
+"""
+Función encargada de parsear los diferentes
+cuerpos de documentos con los que trabajará
+el sistema
+"""
 def parse(corpus, file):
         
         if corpus == 'newsgroup':
@@ -13,8 +18,11 @@ def parse(corpus, file):
         elif corpus == 'npl':
             return parse_npl(file)
         else:
-            NotImplemented
+            raise(Exception("This corpus not exist"))
             
+"""
+Parser del corpus Cranfield
+"""
 def parse_cran(file):
     docs = []
     d_id = ''
@@ -54,6 +62,9 @@ def parse_cran(file):
       
     return docs
 
+"""
+Parser del corpus Reuters
+"""
 def parse_reuters(file):
     docs = []
     text = ''
@@ -82,7 +93,9 @@ def parse_reuters(file):
                 line = file.readline()
     return docs
         
-
+"""
+Parser del corpus Newsgroup
+"""
 def parse_newsgroup(file):
     docs = []
     text = ''
@@ -100,7 +113,15 @@ def parse_newsgroup(file):
     docs.append([subject,text,d_id])
     return docs
 
+"""
+-----------------------------------
+Colecciones encontradas en Internet
+-----------------------------------
+"""
 
+"""
+Parser del corpus Time
+"""
 def parse_time(file):
     docs = []
     text = ''
@@ -119,6 +140,9 @@ def parse_time(file):
         text += line
     return docs
 
+"""
+Parser del corpus NPL
+"""
 def parse_npl(file):
     docs = []
     text = ''
